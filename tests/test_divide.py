@@ -1,4 +1,4 @@
-from sympy import expand, Mul, simplify, sin
+from sympy import simplify, sin
 
 from neuralsutra.kernels.divide import divide
 
