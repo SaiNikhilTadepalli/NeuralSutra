@@ -1,11 +1,14 @@
 import pytest
 
+from pathlib import Path
 from sympy import Symbol
+import sys
 
-x = Symbol("x")
+# Add src/ to sys.path
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def x():
     """Define a shared symbolic variable for tests."""
-    return x
+    return Symbol("x")
