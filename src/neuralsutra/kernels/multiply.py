@@ -1,5 +1,5 @@
 import numpy as np
-from sympy import integrate, Poly, S, simplify
+from sympy import Poly
 
 
 def multiply(expr, var):
