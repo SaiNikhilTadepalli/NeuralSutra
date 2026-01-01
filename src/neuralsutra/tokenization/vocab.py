@@ -12,3 +12,18 @@ def build_vocab(dataset):
     vocab["<UNK>"] = 0
 
     return vocab
+
+
+def save_vocab(vocab, path):
+    """Save vocabulary JSON to path."""
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(vocab, f)
+
+    print(f"Vocabulary saved to: {path}.")
+
+
+def load_vocab(vocab, path):
+    """Load vocabulary JSON from path."""
+    with open(path, "r") as f:
+        return json.load(f)
