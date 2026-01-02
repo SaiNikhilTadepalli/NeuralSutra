@@ -1,6 +1,7 @@
-from sympy import srepr
+from sympy import Integral, srepr
 import torch
 
+from neuralsutra.engine import Engine
 from neuralsutra.router import Router
 from neuralsutra.vocab import load_vocab
 
@@ -32,5 +33,56 @@ class Compiler:
             output = self.model(ids)
             return torch.argmax(output, dim=1).item()
 
-    def compile(self, expr, var):
-        pass
+    def transform(self, node, var):
+        """
+        Apply a surgical transformation to each SymPy Integral node.
+        """
+        if isinstance(node, Integral):
+            integrand = node.function
+
+            # Handle constant integration
+            if not integrand.has(var):
+                return integrand * var
+
+            # Query the neural Router for the mathematical intent
+            intent = self.predict(integrand)
+
+            if intent == 1:
+                # Expand using multiplication kernel
+                mul_res = Engine.multiply(integrand, var)
+
+                # Re-wrap in Integral and resolve
+                return Integral(mul_res, var).doit()
+            elif intent == 2:
+                # Divide using division kernel
+                div_res = Engine.divide(integrand, var)
+
+                return Integral(div_res, var).doit()
+            elif intent == 3:
+                # Integrate using Urdhva integration kernel
+                return Engine.integrate(integrand, var)
+            else:
+                # Fallback to SymPy
+                return node.doit()
+
+        return node
+
+    def compile(self, expr, var, max_passes=3):
+        """
+        Perform 'surgical integration' by breaking the expression into atomic
+        nodes and applying sutras recursively.
+        """
+        # Wrap the expression in an Integral object and expand addition only
+        current_task = Integral(expr, var).expand(mul=False, multinomial=False)
+
+        for _ in range(max_passes):
+            # Terminate if all Integral nodes have been resolved
+            if not current_task.has(Integral):
+                break
+
+            # Walk the tree and apply the transform
+            current_task = current_task.replace(
+                lambda n: isinstance(n, Integral), self.transform
+            )
+
+        return current_task
