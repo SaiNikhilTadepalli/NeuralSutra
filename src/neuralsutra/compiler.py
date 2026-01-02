@@ -63,7 +63,7 @@ class Compiler:
                 return Engine.integrate(integrand, var)
             else:
                 # Fallback to SymPy
-                return node.doit()
+                return node.expand().doit()
 
         return node
 
