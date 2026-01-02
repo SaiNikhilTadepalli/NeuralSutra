@@ -51,9 +51,9 @@ def train_router(dataset, vocab, model_path, test_size, epochs, lr, weight_decay
             avg_val = val_loss / len(val_data)
             accuracy = (correct / len(val_data)) * 100
 
-            print(
-                f"Epoch {epoch+1} | Train Loss: {avg_train:.4f} | Val Loss: {avg_val:.4f} | Val Acc: {accuracy:.2f}%"
-            )
+        print(
+            f"Epoch {epoch+1} | Train Loss: {avg_train:.4f} | Val Loss: {avg_val:.4f} | Val Acc: {accuracy:.2f}%"
+        )
 
     # Save the model
     save_model(model, model_path)
