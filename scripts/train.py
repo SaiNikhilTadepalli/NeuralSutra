@@ -1,0 +1,17 @@
+from neuralsutra.data.generate import generate_dataset
+from neuralsutra.training.trainer import train_router
+from neuralsutra.tokenization.vocab import build_vocab, save_vocab
+
+
+if __name__ == "__main__":
+    # Generate a raw curriculum dataset
+    raw_data = generate_dataset()
+
+    # Build vocab
+    vocab = build_vocab(raw_data)
+
+    # Train and save the model
+    train_router(raw_data, vocab, "models/router.pth", 0.2, 3, 0.001, 1e-5)
+
+    # Save the vocab
+    save_vocab(vocab, "models/vocab.json")
