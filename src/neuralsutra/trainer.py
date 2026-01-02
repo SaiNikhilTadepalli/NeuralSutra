@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from neuralsutra.routing.router import Router
+from neuralsutra.router import Router
 
 
 def train_router(dataset, vocab, model_path, test_size, epochs, lr, weight_decay):

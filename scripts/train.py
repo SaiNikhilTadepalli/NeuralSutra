@@ -1,6 +1,6 @@
 from neuralsutra.data.generate import generate_dataset
-from neuralsutra.training.trainer import train_router
-from neuralsutra.tokenization.vocab import build_vocab, save_vocab
+from neuralsutra.trainer import train_router
+from neuralsutra.vocab import build_vocab, save_vocab
 
 
 if __name__ == "__main__":
