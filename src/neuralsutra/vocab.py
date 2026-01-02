@@ -23,7 +23,7 @@ def save_vocab(vocab, path):
     print(f"Vocabulary saved to: {path}.")
 
 
-def load_vocab(vocab, path):
+def load_vocab(path):
     """Load vocabulary JSON from path."""
     with open(path, "r") as f:
         return json.load(f)
