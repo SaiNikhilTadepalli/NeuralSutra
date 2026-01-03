@@ -11,7 +11,7 @@ if __name__ == "__main__":
     vocab = build_vocab(raw_data)
 
     # Train and save the model
-    train_router(raw_data, vocab, "models/router.pth", 0.2, 3, 0.001, 1e-5)
+    train_router(raw_data, vocab, "models/router.pth")
 
     # Save the vocab
     save_vocab(vocab, "models/vocab.json")
