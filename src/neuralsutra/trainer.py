@@ -7,7 +7,7 @@ from neuralsutra.router import Router
 
 
 def train_router(
-    dataset, vocab, model_path, test_size=0.2, epochs=10, lr=0.001, weight_decay=1e-5
+    dataset, vocab, model_path, test_size=0.2, epochs=3, lr=0.001, weight_decay=1e-5
 ):
     """Train and validate the Router model."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
