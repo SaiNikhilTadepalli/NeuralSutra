@@ -1,4 +1,4 @@
-from sympy import Integral, srepr
+from sympy import Integral, nsimplify, srepr, sympify
 import torch
 
 from neuralsutra.engine import Engine
@@ -22,7 +22,7 @@ class Compiler:
 
     def predict(self, node):
         """
-        Convert a SymPy node to a symbolic expression token sequency and
+        Convert a SymPy node to a symbolic expression token sequence and
         predict the best Vedic sutra for the task.
         """
         # Add padding parentheses to the tokens
@@ -68,6 +68,9 @@ class Compiler:
         Perform 'surgical integration' by breaking the expression into atomic
         nodes and applying sutras recursively.
         """
+        # Convert floats to rationals
+        expr = nsimplify(sympify(expr), rational=True)
+
         # Wrap the expression in an Integral object and expand addition only
         current_task = Integral(expr, var).expand(mul=False, multinomial=False)
 
