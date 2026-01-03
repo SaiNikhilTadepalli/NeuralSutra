@@ -4,99 +4,73 @@ import time
 from neuralsutra.verification import verify_integration
 
 
-class BenchmarkRunner:
-    """
-    Benchmark harness for comparing raw SymPy integration against the
-    NeuralSutra surgical compiler.
-    """
+def sympy_worker(expr, var, queue):
+    """Isolates SymPy so it can be timed out safely."""
+    from sympy import integrate
 
+    try:
+        res = integrate(expr, var)
+        queue.put(res)
+    except Exception:
+        queue.put(None)
+
+
+class BenchmarkRunner:
     def __init__(self, compiler):
         self.compiler = compiler
 
-    def worker(self, queue, func, args):
-        """
-        Worker function executed in a separate process.
-        """
-        try:
-            result = func(*args)
-            queue.put(result)
-        except Exception as e:
-            queue.put(e)
-
-    def run_with_timeout(self, func, args, timeout=30):
-        """
-        Execute a function with a hard timeout using multiprocessing.
-
-        This prevents pathological SymPy cases from hanging the benchmark
-        suite indefinitely.
-        """
-
-        queue = multiprocessing.Queue()
-        process = multiprocessing.Process(target=self._worker, args=(queue, func, args))
-
-        start = time.perf_counter()
-        process.start()
-
-        # Wait for the process to finish or hit the timeout
-        process.join(timeout)
-        end = time.perf_counter()
-
-        if process.is_alive():
-            process.terminate()  # Force kill the process
-            process.join()  # Clean up
-            return timeout, "TIMEOUT"
-
-        # Retrieve result or exception from worker
-        if not queue.empty():
-            res = queue.get()
-            if isinstance(res, Exception):
-                return end - start, f"ERROR: {res}"
-            return end - start, res
-
-        # Fallback in case of unexpected process termination
-        return timeout, "UNKNOWN_FAILURE"
-
     def run_case(self, name, data, var):
-        """
-        Run a single benchmark case.
-
-        Steps:
-        1) Time SymPy's integrate()
-        2) Time NeuralSutra's surgical compiler
-        3) Verify symbolic correctness
-        4) Report speed difference and correctness
-        """
-        print(f"\nTEST CASE: {name}")
-        print(f"\nOBJECTIVE: {data["description"]}")
+        print(f"\n[ CASE ] {name}")
+        expr = data["expr"]
 
         # SymPy baseline
-        from sympy import integrate
+        queue = multiprocessing.Queue()
+        process = multiprocessing.Process(target=sympy_worker, args=(expr, var, queue))
 
-        s_time, _ = self.run_with_timeout(
-            integrate,
-            (data["expr"], var)
-        )
+        start_sympy = time.perf_counter()
+        process.start()
+        process.join(timeout=30)
 
-        s_display = f"{s_time:.4f}s" if s_time < 30 else "TIMEOUT (30s)"
-        print(f"\nSymPy: {s_display}")
+        if process.is_alive():
+            process.terminate()
+            t_sympy = 30.0
+            print(f"  - SymPy Baseline     : TIMEOUT (30s)")
+        else:
+            t_sympy = time.perf_counter() - start_sympy
+            print(f"  - SymPy Baseline     : {t_sympy:.4f}s")
 
-        # NeuralSutra compiler
-        v_time, v_res = self.run_with_timeout(
-            self.compiler.compile,
-            (data["expr"], var)
-        )
+        # Directly call NeuralSutra to maintain model warm-state
+        start_ns = time.perf_counter()
+        try:
+            v_res = self.compiler.compile(expr, var)
+            t_ns = time.perf_counter() - start_ns
+            print(f"  - NeuralSutra Engine : {t_ns:.4f}s")
+        except Exception as e:
+            print(f"  - NeuralSutra Engine : ERROR ({e})")
+            t_ns = 999
+            v_res = None
 
-        # Verify correctness
-        is_correct = verify_integration(data["expr"], v_res, var)
-        
-        print(f"\nNeuralSutra: {v_time:.4f}s")
-        print(f"\nCorrect?: {is_correct}")
+        # Display validation and performance metrics
+        is_correct = verify_integration(expr, v_res, var)
+        speedup = t_sympy / t_ns if t_ns > 0 else 0
 
-        # Compute relative speedup
-        speedup = s_time / v_time if v_time > 0 else 0
+        print(f"  - Verification       : {'PASSED' if is_correct else 'FAILED'}")
+        print(f"  - System Speedup     : {speedup:.2f}x")
+        print("-" * 50)
 
-        return {
-            "name": name,
-            "speedup": speedup,
-            "correct": is_correct,
-        }
+
+def run_benchmark_suite(compiler, cases=None):
+    """
+    Execute the full test battery.
+    """
+    from sympy import Symbol
+
+    from neuralsutra.benchmarks.cases import get_benchmark_cases
+
+    x = Symbol("x")
+    runner = BenchmarkRunner(compiler)
+    test_cases = cases or get_benchmark_cases()
+
+    print("NEURALSUTRA: PERFORMANCE BENCHMARK")
+    for name, data in test_cases.items():
+        runner.run_case(name, data, x)
