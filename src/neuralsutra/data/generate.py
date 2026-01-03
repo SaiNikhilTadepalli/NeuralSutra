@@ -12,8 +12,7 @@ from sympy import (
     Add,
     Symbol,
     srepr,
-    Integer,
-    Float,
+    Rational,
 )
 
 x = Symbol("x")
@@ -27,11 +26,11 @@ def generate_dataset(samples_per_class=2000):
     dataset = []
     print(f"Generating {samples_per_class * 4} samples...")
 
-    def r_num():
-        """Return integers or floats to ensure the router ignores coefficient types."""
-        if random.random() > 0.8:
-            return Float(round(random.uniform(-10.0, 10.0), 2))
-        return Integer(random.randint(-20, 20) or 1)
+    def get_coeff():
+        """Return a random fractional coefficient."""
+        num = random.randint(1, 10)
+        den = random.randint(1, 5)
+        return Rational(num, den)
 
     def get_transcendental():
         """Return a randomly chosen transcendental function."""
@@ -42,7 +41,7 @@ def generate_dataset(samples_per_class=2000):
         # Class 0: Fallback
         expr_0 = random.choice(
             [
-                log(abs(r_num() * x + r_num())),
+                log(abs(get_coeff() * x + get_coeff())),
                 random.choice([sin, cos])(x**2),  # Non-linear argument
                 exp(x) / x,  # Exponential integral (non-elementary)
             ]
@@ -50,24 +49,34 @@ def generate_dataset(samples_per_class=2000):
         dataset.append((srepr(expr_0), 0))
 
         # Class 1: Multiplication
-        p1 = Add(*[r_num() * x**i for i in random.sample(range(5), 3)], evaluate=False)
-        p2 = Add(*[r_num() * x**i for i in random.sample(range(4), 2)], evaluate=False)
+        p1 = Add(
+            *[get_coeff() * x**i for i in random.sample(range(5), 3)], evaluate=False
+        )
+        p2 = Add(
+            *[get_coeff() * x**i for i in random.sample(range(4), 2)], evaluate=False
+        )
         dataset.append((srepr(Mul(p1, p2, evaluate=False)), 1))
 
         # Class 2: Division
-        factor = x + r_num()
-        poly = Add(*[r_num() * x**i for i in range(random.randint(1, 3))])
+        factor = x + get_coeff()
+        poly = Add(*[get_coeff() * x**i for i in range(random.randint(1, 3))])
         dataset.append((srepr(Mul(poly, factor, evaluate=False) / factor), 2))
 
         # Class 3: Integration
-        p_a = Add(*[r_num() * x**i for i in random.sample(range(5), 2)], evaluate=False)
-        p_b = Add(*[r_num() * x**i for i in random.sample(range(3), 2)], evaluate=False)
+        p_a = Add(
+            *[get_coeff() * x**i for i in random.sample(range(5), 2)], evaluate=False
+        )
+        p_b = Add(
+            *[get_coeff() * x**i for i in random.sample(range(3), 2)], evaluate=False
+        )
         trans = get_transcendental()
 
         if random.random() > 0.5:
             expr_3 = Mul(p_a, p_b, trans, evaluate=False)
         else:
-            expr_3 = Mul(r_num() * x ** random.randint(1, 15), trans, evaluate=False)
+            expr_3 = Mul(
+                get_coeff() * x ** random.randint(1, 15), trans, evaluate=False
+            )
 
         dataset.append((srepr(expr_3), 3))
 
