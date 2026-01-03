@@ -11,18 +11,33 @@ class Router(nn.Module):
     def __init__(self, vocab_size, embedding_dim=128, hidden_dim=256, num_classes=4):
         super(Router, self).__init__()
 
-        self.embedding = nn.Embedding(vocab_size, embedding_dim)
+        self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=0)
+
         self.lstm = nn.LSTM(
-            embedding_dim, hidden_dim, batch_first=True, bidirectional=True
+            embedding_dim,
+            hidden_dim,
+            num_layers=2,
+            batch_first=True,
+            bidirectional=True,
+            dropout=0.2,
         )
-        self.fc = nn.Linear(hidden_dim * 2, num_classes)
-        self.dropout = nn.Dropout(0.3)
+
+        # LayerNorm helps with the variance introduced by Float tokens
+        self.ln = nn.LayerNorm(hidden_dim * 2)
+
+        self.fc = nn.Sequential(
+            nn.Linear(hidden_dim * 2, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(hidden_dim, num_classes),
+        )
 
     def forward(self, x):
         embedded = self.embedding(x)
-        _, (hidden, _) = self.lstm(embedded)
 
-        # Concatenate the final forward and backward hidden states
-        hidden_cat = torch.cat((hidden[-2, :, :], hidden[-1, :, :]), dim=1)
-        out = self.fc(self.dropout(hidden_cat))
-        return out
+        out, _ = self.lstm(embedded)
+
+        pooled = torch.max(out, dim=1)[0]
+
+        normed = self.ln(pooled)
+        return self.fc(normed)
