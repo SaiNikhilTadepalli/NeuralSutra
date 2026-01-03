@@ -1,10 +1,11 @@
-from sympy import cos, exp, sin, Symbol, Mul
+from sympy import cos, exp, sin, sinh, cosh, tan, log, Symbol, Mul, Rational
 
 
 def get_benchmark_cases():
     """
-    Return a dictionary of benchmark expressions classified by
-    mathematical structure and computational complexity.
+    Generate a synthetic dataset of SymPy AST sequences.
+    Classes: 0: Fallback, 1: Multiply (Urdhva Tiryagbhyam), 2: Divide (Paravartya Yojayet),
+    3: Integrate (Urdhva Tiryagbhyam tabular method)
     """
     x = Symbol("x")
     return {
@@ -63,5 +64,47 @@ def get_benchmark_cases():
             "expr": (x**4 + 2) / (x + 2) + (x**6 + 1) / (x - 1),
             "category": "Division",
             "description": "Evaluates Paravartya performance on multi-term rational functions.",
+        },
+        "HYPERBOLIC_CYCLE": {
+            "expr": (x**8 + 4 * x**6 - 3 * x**2) * sinh(x) + (x**3) * cosh(x),
+            "category": "New Transcendentals",
+            "description": "Evaluates the Urdhva kernel on Hyperbolic functions, testing the extended derivative cycle handling.",
+        },
+        "TRIPLE_CHAIN_PRODUCT": {
+            "expr": Mul(
+                (x**2 + 3 * x + 1), (x**2 - 3 * x + 1), (x**4 + 1), evaluate=False
+            ),
+            "category": "Deep Multiplication",
+            "description": "Requires sequential application of Urdhva Tiryagbhyam across three distinct polynomial factors.",
+        },
+        "LARGE_OFFSET_DIVISION": {
+            "expr": (x**9 + 12345 * x**5 - 67890) / (x - 15),
+            "category": "Stress Division",
+            "description": "Tests Paravartya Yojayet on inputs with large constant offsets, challenging arithmetic overflow boundaries.",
+        },
+        "NON_VEDIC_FALLBACK": {
+            "expr": x**3 * log(x) + tan(x**2),
+            "category": "Router Accuracy",
+            "description": "Control case: Should be correctly identified as 'Fallback' (Class 0) due to log and non-linear arguments.",
+        },
+        "FRACTIONAL_COEFF_URDHVA": {
+            "expr": Mul(
+                (Rational(1, 2) * x**2 + Rational(3, 4) * x + 5),
+                (Rational(2, 3) * x**2 - Rational(1, 5)),
+                evaluate=False,
+            ),
+            "category": "Fractional Multiplication",
+            "description": "Tests Urdhva Tiryagbhyam with non-integer Rational coefficients to ensure cross-multiplication maintains exactness.",
+        },
+        "RATIONAL_TRIG_INTEGRATION": {
+            "expr": (Rational(1, 10) * x**4 + Rational(2, 3) * x**2) * sin(x),
+            "category": "Integration",
+            "description": "Integration of a polynomial with rational coefficients against a transcendental function.",
+        },
+        "FRACTIONAL_DIVISION": {
+            "expr": (Rational(1, 4) * x**3 + Rational(5, 2) * x - 1)
+            / (x - Rational(1, 2)),
+            "category": "Division",
+            "description": "Paravartya Yojayet division with fractional coefficients and a fractional divisor offset.",
         },
     }
