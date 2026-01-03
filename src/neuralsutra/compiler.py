@@ -44,8 +44,22 @@ class Compiler:
             intent = self.predict(integrand)
 
             if intent == 1:
-                # Expand using multiplication kernel
-                mul_res = Engine.multiply(integrand, var)
+                # If there are multiple factors, reduce them recursively
+                if integrand.is_Mul:
+                    factors = list(integrand.args)
+
+                    def recursive_multiply(args):
+                        if len(args) == 1:
+                            return args[0]
+
+                        head = Engine.multiply(args[0] * args[1], var)
+
+                        # Recurse with the new result and the remaining factors
+                        return recursive_multiply([head] + args[2:])
+
+                    mul_res = recursive_multiply(factors)
+                else:
+                    mul_res = Engine.multiply(integrand, var)
 
                 # Re-wrap in Integral and resolve
                 return Integral(mul_res, var).doit()
@@ -55,18 +69,19 @@ class Compiler:
 
                 return Integral(div_res, var).doit()
             elif intent == 3:
-                # Integrate using Urdhva integration kernel
-                return Engine.integrate(integrand, var)
+                int_res = Engine.integrate(integrand, var)
+
+                return int_res
             else:
                 # Fallback to SymPy
                 return node.expand().doit()
 
         return node
 
-    def compile(self, expr, var, max_passes=3):
+    def compile(self, expr, var, max_passes=10):
         """
-        Perform 'surgical integration' by breaking the expression into atomic
-        nodes and applying sutras recursively.
+        Recursively apply sutras until the expression converges (no Integral nodes left)
+        or the structure stabilizes (fixed-point iteration).
         """
         # Convert floats to rationals
         expr = nsimplify(sympify(expr), rational=True)
@@ -74,18 +89,19 @@ class Compiler:
         # Wrap the expression in an Integral object and expand addition only
         current_task = Integral(expr, var).expand(mul=False, multinomial=False)
 
-        for _ in range(max_passes):
-            # Terminate if all Integral nodes have been resolved
-            if not current_task.has(Integral):
+        last_state = None
+        iterations = 0
+
+        while current_task.has(Integral) and iterations < max_passes:
+            if last_state == current_task:
                 break
 
-            def apply_transform(node):
-                """Use inner function for better pickling/multiprocessing support."""
-                return self.transform(node, var)
+            last_state = current_task
 
-            # Walk the tree and apply the transform
+            # The replace method handles the tree walking
             current_task = current_task.replace(
-                lambda n: isinstance(n, Integral), apply_transform
+                lambda n: isinstance(n, Integral), lambda n: self.transform(n, var)
             )
+            iterations += 1
 
         return current_task
