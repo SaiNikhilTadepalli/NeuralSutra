@@ -40,10 +40,6 @@ class Compiler:
         if isinstance(node, Integral):
             integrand = node.function
 
-            # Handle constant integration
-            if not integrand.has(var):
-                return integrand * var
-
             # Query the neural Router for the mathematical intent
             intent = self.predict(integrand)
 
@@ -80,9 +76,13 @@ class Compiler:
             if not current_task.has(Integral):
                 break
 
+            def apply_transform(node):
+                """Use inner function for better pickling/multiprocessing support."""
+                return self.transform(node, var)
+
             # Walk the tree and apply the transform
             current_task = current_task.replace(
-                lambda n: isinstance(n, Integral), self.transform
+                lambda n: isinstance(n, Integral), apply_transform
             )
 
         return current_task
