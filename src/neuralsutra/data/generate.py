@@ -13,6 +13,7 @@ from sympy import (
     Symbol,
     srepr,
     Rational,
+    Pow,
 )
 
 x = Symbol("x")
@@ -21,67 +22,76 @@ x = Symbol("x")
 def generate_dataset(samples_per_class=2000):
     """
     Generate a synthetic dataset of SymPy AST sequences.
-    Classes: 0: Fallback, 1: Multiply (Urdhva Tiryagbhyam), 2: Divide (Paravartya Yojayet), 3: Integrate (Urdhva Tiryagbhyam tabular method)
+    Classes:
+    0: Fallback (Simple polynomials, elementary non-integrable)
+    1: Multiply (Polynomial * Polynomial)
+    2: Divide (Rational expressions / Polynomial Division)
+    3: Integrate (Polynomial * Transcendental - Integration by Parts style)
     """
     dataset = []
-    print(f"Generating {samples_per_class * 4} samples...")
 
-    def get_coeff():
+    print(f"Generating {samples_per_class * 4} samples...\n")
+
+    def get_coeff(allow_negative=True):
         """Return a random fractional coefficient."""
         num = random.randint(1, 10)
+        if allow_negative and random.random() > 0.5:
+            num *= -1
         den = random.randint(1, 5)
         return Rational(num, den)
+
+    def get_poly(max_degree=3, min_terms=1):
+        """Generate a random polynomial."""
+        num_terms = random.randint(min_terms, max_degree + 1)
+        degrees = random.sample(range(max_degree + 1), num_terms)
+        return Add(*[get_coeff() * x**d for d in degrees], evaluate=False)
 
     def get_transcendental():
         """Return a randomly chosen transcendental function."""
         f = random.choice([sin, cos, exp, tan, sinh, cosh, tanh])
+        # Use simple linear arguments for integration logic
         return f(random.choice([1, -1, 2, -2]) * x)
 
     for _ in range(samples_per_class):
         # Class 0: Fallback
         expr_0 = random.choice(
             [
+                get_poly(max_degree=2),
                 log(abs(get_coeff() * x + get_coeff())),
-                random.choice([sin, cos])(x**2),  # Non-linear argument
-                exp(x) / x,  # Exponential integral (non-elementary)
+                random.choice([sin, cos])(x**2),
+                exp(x) / x,
+                get_coeff() * x,
             ]
         )
         dataset.append((srepr(expr_0), 0))
 
         # Class 1: Multiplication
-        p1 = Add(
-            *[get_coeff() * x**i for i in random.sample(range(5), 3)], evaluate=False
-        )
-        p2 = Add(
-            *[get_coeff() * x**i for i in random.sample(range(4), 2)], evaluate=False
-        )
+        p1 = get_poly(max_degree=4, min_terms=2)
+        p2 = get_poly(max_degree=3, min_terms=2)
         dataset.append((srepr(Mul(p1, p2, evaluate=False)), 1))
 
         # Class 2: Division
-        factor = x + get_coeff()
-        poly = Add(*[get_coeff() * x**i for i in range(random.randint(1, 3))])
-        dataset.append((srepr(Mul(poly, factor, evaluate=False) / factor), 2))
+        num_poly = get_poly(max_degree=3, min_terms=1)
+        den_poly = get_poly(max_degree=1, min_terms=2)
+
+        # Use evaluate=False to keep the fractional structure in the AST
+        div_expr = Mul(num_poly, Pow(den_poly, -1, evaluate=False), evaluate=False)
+        dataset.append((srepr(div_expr), 2))
 
         # Class 3: Integration
-        p_a = Add(
-            *[get_coeff() * x**i for i in random.sample(range(5), 2)], evaluate=False
-        )
-        p_b = Add(
-            *[get_coeff() * x**i for i in random.sample(range(3), 2)], evaluate=False
-        )
+        p_a = get_poly(max_degree=3, min_terms=1)
         trans = get_transcendental()
 
-        if random.random() > 0.5:
-            expr_3 = Mul(p_a, p_b, trans, evaluate=False)
+        # Generate double and triple bracket scenarios
+        if random.random() > 0.7:
+            expr_3 = Mul(get_poly(max_degree=1), p_a, trans, evaluate=False)
         else:
-            expr_3 = Mul(
-                get_coeff() * x ** random.randint(1, 15), trans, evaluate=False
-            )
+            expr_3 = Mul(p_a, trans, evaluate=False)
 
         dataset.append((srepr(expr_3), 3))
 
     random.shuffle(dataset)
 
-    print("Dataset generated")
+    print(f"Successfully generated {len(dataset)} samples.\n")
 
     return dataset
