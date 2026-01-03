@@ -59,7 +59,7 @@ class Compiler:
 
                     mul_res = recursive_multiply(factors)
                 else:
-                    mul_res = Engine.multiply(integrand, var)
+                    mul_res = integrand
 
                 # Re-wrap in Integral and resolve
                 return Integral(mul_res, var).doit()
