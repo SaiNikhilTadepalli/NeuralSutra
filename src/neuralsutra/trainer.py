@@ -1,3 +1,4 @@
+import os
 from sklearn.model_selection import train_test_split
 import torch
 import torch.nn as nn
@@ -86,4 +87,11 @@ def train_router(
 
 def save_model(model, path):
     """Save the trained model as a serialized PyTorch state dictionary (.pth) file."""
+    directory = os.path.dirname(path)
+
+    # Create the directory if it doesn't exist
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory)
+        print(f"Created directory: {directory}")
+
     torch.save(model.state_dict(), path)
