@@ -17,8 +17,7 @@ setup(
         "scikit-learn",
         "pytest",
     ],
-    # Metadata for recruiters/users
-    description="A Hybrid Neuro-Symbolic Integration Engine using Vedic Mathematics Kernels",
+    description="A hybrid neuro-symbolic integration engine using Vedic mathematics kernels",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Sai Nikhil Tadepalli",
