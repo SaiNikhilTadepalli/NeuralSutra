@@ -3,9 +3,7 @@ from sympy import cos, exp, sin, sinh, cosh, tan, log, Symbol, Mul, Rational
 
 def get_benchmark_cases():
     """
-    Generate a synthetic dataset of SymPy AST sequences.
-    Classes: 0: Fallback, 1: Multiply (Urdhva Tiryagbhyam), 2: Divide (Paravartya Yojayet),
-    3: Integrate (Urdhva Tiryagbhyam tabular method)
+    Return a dictionary of benchmark SymPy expressions to test the performance of NeuralSutra.
     """
     x = Symbol("x")
     return {
