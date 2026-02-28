@@ -2,7 +2,7 @@ import json
 import os
 
 
-def build_vocab(dataset):
+def build_vocab(dataset: list[tuple[str, int]]) -> dict[str, int]:
     """Create a unique ID for every symbolic SymPy expression token found in the dataset."""
     all_tokens = " ".join(
         [d[0].replace("(", " ( ").replace(")", " ) ") for d in dataset]
@@ -14,7 +14,7 @@ def build_vocab(dataset):
     return vocab
 
 
-def save_vocab(vocab, path):
+def save_vocab(vocab: dict[str, int], path: str) -> None:
     """Save vocabulary JSON to path."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
@@ -23,7 +23,7 @@ def save_vocab(vocab, path):
     print(f"Vocabulary saved to: {path}.")
 
 
-def load_vocab(path):
+def load_vocab(path: str) -> dict[str, int]:
     """Load vocabulary JSON from path."""
     with open(path, "r") as f:
         return json.load(f)

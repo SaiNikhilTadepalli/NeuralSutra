@@ -1,4 +1,4 @@
-from sympy import Integral, nsimplify, srepr, sympify
+from sympy import Expr, Integral, Symbol, nsimplify, srepr, sympify
 import torch
 
 from neuralsutra.engine import Engine
@@ -12,7 +12,7 @@ class Compiler:
     to dispatch sub-tasks to optimised Vedic kernels.
     """
 
-    def __init__(self, model_path, vocab_path):
+    def __init__(self, model_path: str, vocab_path: str) -> None:
         self.vocab = load_vocab(vocab_path)
         self.model = Router(vocab_size=len(self.vocab) + 1)
 
@@ -20,7 +20,7 @@ class Compiler:
         self.model.load_state_dict(torch.load(model_path))
         self.model.eval()
 
-    def predict(self, node):
+    def predict(self, node: Expr) -> int:
         """
         Convert a SymPy node to a symbolic expression token sequence and
         predict the best Vedic sutra for the task.
@@ -33,7 +33,7 @@ class Compiler:
             output = self.model(ids)
             return torch.argmax(output, dim=1).item()
 
-    def transform(self, node, var):
+    def transform(self, node: Expr, var: Symbol) -> Expr:
         """
         Apply a surgical transformation to each SymPy Integral node.
         """
@@ -78,10 +78,10 @@ class Compiler:
 
         return node
 
-    def compile(self, expr, var, max_passes=10):
+    def compile(self, expr: Expr, var: Symbol, max_passes: int = 10) -> Expr:
         """
         Recursively apply sutras until the expression converges (no Integral nodes left)
-        or the structure stabilizes (fixed-point iteration).
+        or the structure stabilises (fixed-point iteration).
         """
         # Convert floats to rationals
         expr = nsimplify(sympify(expr), rational=True)

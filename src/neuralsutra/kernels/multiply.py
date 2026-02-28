@@ -1,7 +1,7 @@
-from sympy import Poly, Rational
+from sympy import Expr, Poly, Rational, Symbol
 
 
-def multiply(expr, var):
+def multiply(expr: Expr, var: Symbol) -> Expr:
     """
     Perform exact polynomial multiplication using Urdhva Tiryagbhyam (Vertically and Crosswise) method.
     """

@@ -1,7 +1,7 @@
-from sympy import Poly, Rational, simplify
+from sympy import Expr, Poly, Rational, Symbol, simplify
 
 
-def divide(expr, var):
+def divide(expr: Expr, var: Symbol) -> Expr:
     """
     Perform polynomial division using the Paravartya Yojayet (Transpose and Apply) method.
     """

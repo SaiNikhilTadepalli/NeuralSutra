@@ -2,7 +2,7 @@ from neuralsutra.benchmarks.runner import run_benchmark_suite
 from neuralsutra.compiler import Compiler
 
 
-def main():
+def main() -> None:
     # Load the compiler
     try:
         compiler = Compiler("models/router.pth", "models/vocab.json")

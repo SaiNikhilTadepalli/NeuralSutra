@@ -1,10 +1,14 @@
 import multiprocessing
+from multiprocessing import Queue
 import time
+from typing import Any, Optional
+from sympy import Expr, Symbol
 
+from neuralsutra.compiler import Compiler
 from neuralsutra.verification import verify_integration
 
 
-def sympy_worker(expr, var, queue):
+def sympy_worker(expr: Expr, var: Symbol, queue: Queue) -> None:
     """Isolates SymPy so it can be timed out safely."""
     from sympy import integrate
 
@@ -16,10 +20,10 @@ def sympy_worker(expr, var, queue):
 
 
 class BenchmarkRunner:
-    def __init__(self, compiler):
+    def __init__(self, compiler: Compiler):
         self.compiler = compiler
 
-    def run_case(self, name, data, var):
+    def run_case(self, name: str, data: dict[str, Expr | str], var: Symbol) -> None:
         print(f"\n[ CASE ] {name}")
         expr = data["expr"]
 
@@ -59,7 +63,9 @@ class BenchmarkRunner:
         print("-" * 50)
 
 
-def run_benchmark_suite(compiler, cases=None):
+def run_benchmark_suite(
+    compiler: Compiler, cases: Optional[dict[str, dict[str, Expr | str]]] = None
+):
     """
     Execute the full test battery.
     """

@@ -14,12 +14,13 @@ from sympy import (
     srepr,
     Rational,
     Pow,
+    Expr,
 )
 
 x = Symbol("x")
 
 
-def generate_dataset(samples_per_class=2000):
+def generate_dataset(samples_per_class: int = 2000) -> list[tuple[str, int]]:
     """
     Generate a synthetic dataset of SymPy AST sequences.
     Classes:
@@ -32,7 +33,7 @@ def generate_dataset(samples_per_class=2000):
 
     print(f"Generating {samples_per_class * 4} samples...\n")
 
-    def get_coeff(allow_negative=True):
+    def get_coeff(allow_negative: bool = True) -> Rational:
         """Return a random fractional coefficient."""
         num = random.randint(1, 10)
         if allow_negative and random.random() > 0.5:
@@ -40,13 +41,13 @@ def generate_dataset(samples_per_class=2000):
         den = random.randint(1, 5)
         return Rational(num, den)
 
-    def get_poly(max_degree=3, min_terms=1):
+    def get_poly(max_degree: int = 3, min_terms: int = 1) -> Add:
         """Generate a random polynomial."""
         num_terms = random.randint(min_terms, max_degree + 1)
         degrees = random.sample(range(max_degree + 1), num_terms)
         return Add(*[get_coeff() * x**d for d in degrees], evaluate=False)
 
-    def get_transcendental():
+    def get_transcendental() -> Expr:
         """Return a randomly chosen transcendental function."""
         f = random.choice([sin, cos, exp, tan, sinh, cosh, tanh])
         # Use simple linear arguments for integration logic

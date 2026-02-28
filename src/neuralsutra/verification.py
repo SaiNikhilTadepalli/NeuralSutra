@@ -1,7 +1,9 @@
-from sympy import diff, sympify, Abs
+from sympy import diff, sympify, Expr, Abs, Symbol
 
 
-def verify_integration(original_expr, integrated_result, var):
+def verify_integration(
+    original_expr: Expr, integrated_result: Expr, var: Symbol
+) -> bool:
     """
     Verify the mathematical correctness of an integration result.
 

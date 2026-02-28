@@ -1,4 +1,5 @@
 import torch
+from torch import Tensor
 import torch.nn as nn
 
 
@@ -8,7 +9,13 @@ class Router(nn.Module):
     into specific Vedic kernels. Outputs one of four classes: multiply, divide, integrate, fallback.
     """
 
-    def __init__(self, vocab_size, embedding_dim=128, hidden_dim=256, num_classes=4):
+    def __init__(
+        self,
+        vocab_size: int,
+        embedding_dim: int = 128,
+        hidden_dim: int = 256,
+        num_classes: int = 4,
+    ) -> None:
         super(Router, self).__init__()
 
         self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=0)
@@ -32,7 +39,7 @@ class Router(nn.Module):
             nn.Linear(hidden_dim, num_classes),
         )
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         embedded = self.embedding(x)
 
         out, _ = self.lstm(embedded)

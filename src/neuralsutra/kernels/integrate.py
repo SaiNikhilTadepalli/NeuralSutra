@@ -1,7 +1,7 @@
-from sympy import integrate as sympy_integrate, Poly, S
+from sympy import Expr, Poly, S, Symbol, integrate as sympy_integrate
 
 
-def integrate(expr, var):
+def integrate(expr: Expr, var: Symbol) -> Expr:
     """
     Perform symbolic integration using the Urdhva Tiryagbhyam (Vertically and Crosswise) tabular method.
     """

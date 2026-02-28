@@ -8,8 +8,14 @@ from neuralsutra.router import Router
 
 
 def train_router(
-    dataset, vocab, model_path, test_size=0.2, epochs=3, lr=0.001, weight_decay=1e-5
-):
+    dataset: list[tuple[str, int]],
+    vocab: dict[str, int],
+    model_path: str,
+    test_size: float = 0.2,
+    epochs: int = 3,
+    lr: float = 0.001,
+    weight_decay: float = 1e-5,
+) -> None:
     """Train and validate the Router model."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Training on: {device}")
@@ -85,7 +91,7 @@ def train_router(
     print(f"Model saved to {model_path}")
 
 
-def save_model(model, path):
+def save_model(model: nn.Module, path: str) -> None:
     """Save the trained model as a serialized PyTorch state dictionary (.pth) file."""
     directory = os.path.dirname(path)
 

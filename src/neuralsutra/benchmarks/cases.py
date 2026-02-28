@@ -1,7 +1,7 @@
-from sympy import cos, exp, sin, sinh, cosh, tan, log, Symbol, Mul, Rational
+from sympy import cos, exp, sin, sinh, cosh, tan, log, Symbol, Mul, Rational, Expr
 
 
-def get_benchmark_cases():
+def get_benchmark_cases() -> dict[str, dict[str, Expr | str]]:
     """
     Return a dictionary of benchmark SymPy expressions to test the performance of NeuralSutra.
     """
