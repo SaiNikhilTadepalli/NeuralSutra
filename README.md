@@ -43,6 +43,7 @@ NeuralSutra verifies the result of integrations using three steps:
 * Python 3.11+
 * PyTorch (for the Bi-LSTM model)
 * SymPy
+* scikit-learn
 
 ### Installation
 **1. Clone the repository:**
